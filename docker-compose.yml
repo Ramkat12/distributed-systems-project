@@ -1,0 +1,29 @@
+networks:
+  net1:
+    external: true
+
+services:
+  load_balancer:
+    build: ./load_balancer
+    image: lb_img
+    depends_on:
+      server_builder:
+        condition: service_completed_successfully
+    container_name: load_balancer
+    ports:
+      - "5000:5000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+    networks:
+      net1:
+        aliases:
+          - load_balancer
+    environment:
+      N: 3
+
+  # The server image is pre-built so the LB can spawn containers from it
+  server_builder:
+    build: ./server
+    image: server_img
+    command: echo "server image built"
