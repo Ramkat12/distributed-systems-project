@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+"""Benchmarking suite for the load balancer.
+
+Run against a live load balancer at LB_URL (except a4, which is a pure
+offline simulation). Usage: `python analyze.py [a1|a2|a3|a4|all]`.
+
+  a1 - request distribution across N=3 servers, 10k requests
+  a2 - average load per server as N scales from 2 to 6
+  a3 - failure detection + self-healing recovery time
+  a4 - offline comparison of two different hash function choices
+"""
 import asyncio
 import sys
 import time
@@ -37,6 +47,7 @@ def count_by_server(results):
     return dict(sorted(counts.items()))
 
 def get_replicas():
+    """Fetch the current replica count/hostnames from the live load balancer."""
     return requests.get(f"{LB_URL}/rep").json()["message"]
 
 def set_n_servers(target):

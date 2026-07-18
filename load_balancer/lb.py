@@ -1,3 +1,11 @@
+"""Load balancer service.
+
+Spawns/kills backend server containers via the Docker CLI (using the
+host's Docker socket mounted into this container), registers them on a
+consistent-hash ring, forwards client requests to the ring-selected
+replica, and runs a background heartbeat thread that detects and
+replaces dead replicas automatically.
+"""
 from flask import Flask, jsonify, request
 import os, threading, time, random, string, subprocess
 import requests as req
@@ -18,9 +26,12 @@ lock           = threading.Lock()
 # helpers 
 
 def random_hostname():
+    """Generate a random container/hostname like 'Server_A1B2'."""
     return "Server_" + "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
 
 def spawn_container(hostname, server_id):
+    """Start a new server container on the shared Docker network via the
+    Docker CLI. Returns True on success."""
     result = subprocess.run(
         ['docker', 'run', '--name', hostname,
          '--network', NETWORK, '--network-alias', hostname,
@@ -30,6 +41,7 @@ def spawn_container(hostname, server_id):
     return result.returncode == 0
 
 def kill_container(hostname):
+    """Stop and remove a server container via the Docker CLI."""
     subprocess.run(['docker', 'stop', hostname], capture_output=True)
     subprocess.run(['docker', 'rm',   hostname], capture_output=True)
 
@@ -51,6 +63,8 @@ def remove_server_internal(hostname):
 # startup 
 
 def init_servers():
+    """Spawn the initial N server containers at startup and register
+    them on the hash ring."""
     global server_id_counter
     with lock:
         for i in range(1, N + 1):
@@ -61,6 +75,9 @@ def init_servers():
 # heartbeat monitor 
 
 def heartbeat_loop():
+    """Background thread: every 5s, ping every registered server's
+    /heartbeat endpoint and replace any that fail to respond with a
+    freshly spawned container (self-healing)."""
     global server_id_counter
     while True:
         time.sleep(5)
@@ -105,6 +122,7 @@ def heartbeat_loop():
 
 @app.route("/rep", methods=["GET"])
 def rep():
+    """Return the current replica count and hostnames."""
     with lock:
         return jsonify({
             "message": {"N": len(servers), "replicas": list(servers.keys())},
@@ -114,6 +132,9 @@ def rep():
 
 @app.route("/add", methods=["POST"])
 def add():
+    """Scale up: spawn `n` new server containers (using any given
+    `hostnames`, filling the rest with random ones) and register them
+    on the ring."""
     global server_id_counter
     data      = request.json
     n         = data.get("n", 0)
@@ -140,6 +161,9 @@ def add():
 
 @app.route("/rm", methods=["DELETE"])
 def remove():
+    """Scale down: remove `n` server containers (specific `hostnames`
+    if given, otherwise chosen at random) from the ring and tear them
+    down."""
     data      = request.json
     n         = data.get("n", 0)
     hostnames = list(data.get("hostnames", []))
@@ -167,6 +191,9 @@ def remove():
 
 @app.route("/<path:path>", methods=["GET"])
 def route(path):
+    """Forward an arbitrary GET request to whichever server the
+    consistent-hash ring selects for a freshly generated random
+    request ID."""
     req_id = random.randint(100000, 999999)
     with lock:
         server_id = chmap.get_server(req_id)
