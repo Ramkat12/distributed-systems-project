@@ -3,7 +3,7 @@
 A simulated distributed load balancer built with Docker and consistent hashing.
 It spreads requests across dynamically managed backend server replicas, can
 scale replicas up or down on demand, and automatically detects and replaces
-replicas that fail (self-healing) — all without any manual intervention.
+replicas that fail (self-healing), all without any manual intervention.
 
 ## Purpose & Context
 
@@ -27,7 +27,7 @@ client → load_balancer:5000 → (consistent hash ring) → Server_1 / Server_2
                          (dead servers auto-replaced)
 ```
 
-- **[`server/`](server/)** — the backend replica. A minimal Flask app
+- **[`server/`](server/)** , the backend replica. A minimal Flask app
   ([server.py](server/server.py)) with two routes:
   - `GET /home` — returns a greeting identifying itself by `SERVER_ID`
   - `GET /heartbeat` — health check, always returns 200
@@ -35,7 +35,7 @@ client → load_balancer:5000 → (consistent hash ring) → Server_1 / Server_2
   This is built once into a `server_img` Docker image. The load balancer
   spawns/kills containers from this image as needed.
 
-- **[`load_balancer/`](load_balancer/)** — the brain
+- **[`load_balancer/`](load_balancer/)** : the brain
   ([lb.py](load_balancer/lb.py)). A Flask app that:
   - Spawns `N` server containers on startup (via the Docker CLI, using the
     host's Docker socket) and registers them on a consistent-hash ring.
@@ -54,19 +54,19 @@ client → load_balancer:5000 → (consistent hash ring) → Server_1 / Server_2
   were the host.
 
 - **[`load_balancer/consistent_hash.py`](load_balancer/consistent_hash.py)**
-  — the consistent hashing ring. 512 slots, 9 virtual nodes per server
+  : the consistent hashing ring. 512 slots, 9 virtual nodes per server
   (placed via a hash function Φ, with linear probing on collisions).
   Incoming requests are hashed via `H` and routed clockwise to the nearest
   server slot. This gives even distribution and avoids remapping
   everything when servers are added or removed.
 
-- **[`analysis/`](analysis/)** — benchmarking scripts
+- **[`analysis/`](analysis/)** : benchmarking scripts
   ([analyze.py](analysis/analyze.py)), not part of the running system.
   Fires thousands of requests at the load balancer and measures/plots
   distribution, scalability, and recovery time (see
   [Benchmarks & Analysis](#benchmarks--analysis) below).
 
-- **[`tests/`](tests/)** — unit tests covering the hashing ring and the
+- **[`tests/`](tests/)** : unit tests covering the hashing ring and the
   load balancer's endpoints (see [Testing](#testing) below).
 
 ## Repository Structure
@@ -101,7 +101,7 @@ Load-balancer/
 
 **To run the system:**
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or
-  Docker Engine + Compose v2) — everything else runs inside containers.
+  Docker Engine + Compose v2) , everything else runs inside containers.
 - `make` (optional convenience wrapper around the `docker compose`
   commands below; the raw commands work without it).
 
@@ -223,7 +223,7 @@ handled each one.
 ![Request distribution for N=3](analysis/a1_distribution.png)
 
 The dashed red line marks the ideal even split. Distribution is close to,
-but not exactly, even — expected, since each server occupies only 9 of the
+but not exactly, even  expected, since each server occupies only 9 of the
 512 ring slots (its virtual nodes), so small placement asymmetries on the
 ring show up as visible differences in traffic share.
 
@@ -241,7 +241,7 @@ that adding replicas actually spreads load rather than concentrating it.
 
 Kills a running replica directly, then polls `/rep` once per second (up to
 20s) to measure exactly how long detection + self-healing recovery takes.
-This is console output only (no chart) — it prints the elapsed time and
+This is console output only (no chart) ,it prints the elapsed time and
 the resulting replica set once the dead server has been replaced.
 
 ### A-4: Hash function comparison (offline simulation)
@@ -256,7 +256,7 @@ purely offline (no Docker), first at N=3:
 ![Hash function comparison across N](analysis/a4_scalability_comparison.png)
 
 Both configurations track the ideal closely, showing that good
-distribution comes from the general approach — hashing plus virtual
+distribution comes from the general approach,hashing plus virtual
 nodes — rather than being fragile to the exact formula chosen.
 
 ## Additional Materials
