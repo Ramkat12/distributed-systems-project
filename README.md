@@ -29,8 +29,8 @@ client → load_balancer:5000 → (consistent hash ring) → Server_1 / Server_2
 
 - **[`server/`](server/)** , the backend replica. A minimal Flask app
   ([server.py](server/server.py)) with two routes:
-  - `GET /home` — returns a greeting identifying itself by `SERVER_ID`
-  - `GET /heartbeat` — health check, always returns 200
+  - `GET /home` : returns a greeting identifying itself by `SERVER_ID`
+  - `GET /heartbeat` : health check, always returns 200
 
   This is built once into a `server_img` Docker image. The load balancer
   spawns/kills containers from this image as needed.
@@ -42,10 +42,10 @@ client → load_balancer:5000 → (consistent hash ring) → Server_1 / Server_2
   - Runs a background thread every 5s that pings each server's
     `/heartbeat`; any that fail are killed and replaced automatically.
   - Exposes these endpoints:
-    - `GET /rep` — list current server replicas
-    - `POST /add` — spin up more server containers, e.g. `{"n": 2}`
-    - `DELETE /rm` — tear down server containers, e.g. `{"n": 1}`
-    - `GET /<path>` — routes the request: hashes a random request ID onto
+    - `GET /rep` : list current server replicas
+    - `POST /add` : spin up more server containers, e.g. `{"n": 2}`
+    - `DELETE /rm` : tear down server containers, e.g. `{"n": 1}`
+    - `GET /<path>` : routes the request: hashes a random request ID onto
       the ring, finds the nearest server, proxies the request there, and
       returns the result
 
@@ -194,13 +194,13 @@ pytest tests/ -v
 ```
 
 **What's covered:**
-- `tests/test_consistent_hash.py` — virtual node placement, collision
+- `tests/test_consistent_hash.py` : virtual node placement, collision
   resolution via linear probing, clockwise routing, removal, and
   determinism of the ring.
-- `tests/test_load_balancer.py` — `/rep`, `/add`, `/rm` (including input
+- `tests/test_load_balancer.py` : `/rep`, `/add`, `/rm` (including input
   validation) and the catch-all forwarding route (success, 404 from a
   downstream server, and an unreachable server).
-- `tests/test_server.py` — the backend replica's `/home` and `/heartbeat`
+- `tests/test_server.py` : the backend replica's `/home` and `/heartbeat`
   routes.
 
 ## Benchmarks & Analysis
@@ -257,7 +257,7 @@ purely offline (no Docker), first at N=3:
 
 Both configurations track the ideal closely, showing that good
 distribution comes from the general approach,hashing plus virtual
-nodes — rather than being fragile to the exact formula chosen.
+nodes, rather than being fragile to the exact formula chosen.
 
 ## Additional Materials
 
