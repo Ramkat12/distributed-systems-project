@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "PowerShell(winget --version)",
-      "PowerShell(winget install GnuWin32.Make --accept-source-agreements --accept-package-agreements)"
-    ]
-  }
-}
