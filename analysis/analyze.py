@@ -1,21 +1,4 @@
 #!/usr/bin/env python3
-"""
-Task 4 Analysis — Load Balancer Performance Testing
-
-Usage:
-    python analyze.py a1    # A-1: bar chart, N=3, 10000 requests
-    python analyze.py a2    # A-2: line chart, N=2..6, 10000 requests each
-    python analyze.py a3    # A-3: failure + recovery demo
-    python analyze.py a4    # A-4: hash function comparison (offline simulation)
-    python analyze.py all   # run all four in sequence
-
-Prerequisites (install once):
-    pip install -r requirements.txt
-
-The load balancer must be running at localhost:5000 for A-1, A-2, A-3.
-A-4 is a pure offline simulation — no Docker needed.
-"""
-
 import asyncio
 import sys
 import time
@@ -212,7 +195,7 @@ def task_a4():
 
     # sub-figure 1: N=3 bar comparison 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    fig.suptitle(f"A-4: Distribution comparison — N=3, {TOTAL_REQUESTS:,} requests (simulated)")
+    fig.suptitle(f"A-4: Distribution comparison : N=3, {TOTAL_REQUESTS:,} requests (simulated)")
 
     for ax, (title, H, Phi) in zip(axes, configs):
         counts = _simulate(H, Phi)
@@ -246,7 +229,7 @@ def task_a4():
 
     ideal_line = [TOTAL_REQUESTS / n for n in ns]
     ax.plot(ns, ideal_line, 'k--', alpha=0.4, label="Ideal")
-    ax.set_title(f"A-4: Avg load per server vs N — hash function comparison")
+    ax.set_title(f"A-4: Avg load per server vs N  hash function comparison")
     ax.set_xlabel("N")
     ax.set_ylabel("Avg requests per server")
     ax.set_xticks(ns)
